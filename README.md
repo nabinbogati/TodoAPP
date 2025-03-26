@@ -13,6 +13,7 @@ A simple todo app built while learning FastAPI
   * Task assignment & Notification
   * Access level in tasks. ( Roles )
   * Realtime collaborative editing.
+
 ## Tech Stack
 
 **Client:** React
@@ -22,7 +23,7 @@ A simple todo app built while learning FastAPI
 
 ## Feedback
 
-If you have any feedback, please reach out to us at nabin31bogati@gmail.com
+If you have any feedback, please reach out to me at nabin31bogati@gmail.com
 
 
 ## Run Locally
@@ -30,7 +31,7 @@ If you have any feedback, please reach out to us at nabin31bogati@gmail.com
 Clone the project
 
 ```bash
-  git clone https://link-to-project
+  git clone https://github.com/nabinbogati/TodoAPP.git
 ```
 
 Go to the project source directory
