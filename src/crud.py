@@ -1,27 +1,22 @@
+from database import SqliteContext
 from schema import Task
 
-TASKS = {}
+
+def add_tasks(tasks: list[Task]):
+    query = """ INSERT INTO TASKS (title, description) VALUES (?, ?) """
+    data = [(task.title, task.description) for task in tasks]
+
+    with SqliteContext() as cursor:
+        cursor.executemany(query, data)
 
 
-def create_tasks(tasks: list[Task]) -> dict[int, Task]:
-    for task in tasks:
-        print(task.task_id)
-    new_tasks = {task.task_id: task.model_dump() for task in tasks}
-    TASKS.update(new_tasks)
-    return TASKS
+def get_tasks(task_id: int | None = None) -> list:
+    query = """ SELECT * FROM TASKS"""
 
+    if task_id:
+        query = f""" SELECT * FROM TASKS WHERE id={task_id}"""
 
-def update_task(task_id: int, task: Task) -> dict[int, Task]:
-    if TASKS.get(task_id):
-        for key, value in task.model_dump().items():
-            TASKS[task_id][key] = value
+    with SqliteContext() as cursor:
+        tasks = cursor.execute(query).fetchall()
 
-    return TASKS
-
-
-def replace_task(task_id: int, task: Task) -> dict[int, Task]:
-    if TASKS.get(task_id):
-        for key, value in task.model_dump().items():
-            TASKS[task_id][key] = value
-
-    return TASKS
+    return tasks
