@@ -1,7 +1,7 @@
 # create task table
 
-create_task_query = """
-    CREATE TABLE TASKS(
+task_schema = """
+    CREATE TABLE IF NOT EXISTS TASKS(
         id INTEGER PRIMARY KEY,
         title VARCHAR(30),
         description VARCHAR(100),
