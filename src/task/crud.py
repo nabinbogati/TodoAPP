@@ -1,5 +1,6 @@
 from database import SqliteContext
-from schema import Task
+
+from .schema import Task
 
 
 def add_tasks(tasks: list[Task]):

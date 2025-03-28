@@ -1,8 +1,9 @@
-import crud
 import fastapi
 from fastapi import APIRouter, Response
-from schema import Task
-from starlette.responses import JSONResponse
+from fastapi.responses import JSONResponse
+
+from . import crud
+from .schema import Task
 
 router = APIRouter()
 
