@@ -13,7 +13,7 @@ ENV PATH="/root/.local/bin:$PATH"
 WORKDIR /app
 
 # copying project files inside docker
-COPY . .
+COPY pyproject.toml .env ./
 
 # install project dependencies
 RUN uv sync
