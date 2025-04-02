@@ -1,9 +1,11 @@
 import sqlite3
 
+from config import settings
+
 
 class SqliteContext:
     def __init__(self):
-        self.connection = sqlite3.connect("./sqlite.db")
+        self.connection = sqlite3.connect(settings.SQLITE_PATH)
         self.cursor = self.connection.cursor()
 
     def __enter__(self):
