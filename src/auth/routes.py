@@ -1,35 +1,46 @@
-from hashlib import sha256
+from typing import Annotated, Any
 
-from fastapi import APIRouter, Form, HTTPException, status
-from fastapi.params import Depends
-from fastapi.security import OAuth2PasswordRequestForm
-from starlette.responses import JSONResponse, Response
-from typing_extensions import Annotated
+from database import SessionDep
+from fastapi import APIRouter, Form, HTTPException
+from starlette.responses import JSONResponse
 
 from auth import crud
-from auth.schema import UserForm
-from auth.service import generate_oauth_tokens
+from auth.crud import get_user_from_email
+from auth.models import UserCreate, UserLogin, UserPublic
+from auth.security import generate_oauth_tokens, verify_password
 
 auth_router = APIRouter()
 
 
-@auth_router.post("/auth/register")
-async def register_user(user: Annotated[UserForm, Form()]) -> Response:
-    crud.create_user(user)
-    return JSONResponse(status_code=status.HTTP_201_CREATED, content={})
+@auth_router.post("/auth/register", response_model=UserPublic)
+async def register_user(
+    session: SessionDep, user_in: Annotated[UserCreate, Form()]
+) -> Any:
+    user = get_user_from_email(session, user_in.email)
+    if user:
+        raise HTTPException(
+            status_code=400, detail="User with this email already exists in the system."
+        )
+
+    user = crud.create_user(session, user_in)
+    return user
 
 
 @auth_router.post("/auth/login")
 async def login_user(
-    credentials: Annotated[OAuth2PasswordRequestForm, Depends()],
+    session: SessionDep,
+    credentials: Annotated[UserLogin, Form()],
 ) -> JSONResponse:
-    user_dict = crud.verify_user(credentials.username)
-    if not user_dict:
-        raise HTTPException(status_code=400, detail="Invalid Username or Password")
+    user = crud.get_user_from_email(session, credentials.email)
+    if not user:
+        raise HTTPException(
+            status_code=404, detail="The requested user doesn't exists in the system."
+        )
 
-    password_hash = sha256(credentials.password.encode("utf-8")).hexdigest()
-    if user_dict[1] != password_hash:
-        raise HTTPException(status_code=400, detail="Invalid Username or Password")
+    if not verify_password(credentials.password, user.password):
+        raise HTTPException(
+            status_code=400, detail="Invalid Credentials, Incorrect Email or Password."
+        )
 
-    access_token = await generate_oauth_tokens(user_dict[0])
-    return JSONResponse(content={"access_token": access_token})
+    access_token = generate_oauth_tokens(user.id)
+    return JSONResponse(status_code=200, content={"access_token": access_token})
