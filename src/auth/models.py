@@ -1,10 +1,15 @@
 import uuid
 
-from pydantic import EmailStr
+from pydantic import BaseModel, EmailStr
 from sqlmodel import Field, SQLModel
 
 
 # Shared user properties
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+
 class UserBase(SQLModel):
     full_name: str = Field(max_length=255)
     email: EmailStr = Field(index=True, unique=True, max_length=255)
@@ -17,7 +22,7 @@ class UserCreate(UserBase):
 
 
 class UserLogin(SQLModel):
-    email: EmailStr = Field(max_length=255)
+    username: EmailStr = Field(max_length=255)
     password: str = Field(min_length=6, max_length=255)
 
 

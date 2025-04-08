@@ -1,23 +1,32 @@
-from database import SqliteContext
+import uuid
 
-from task.schema import Task
+from auth.models import UserPublic
+from sqlmodel import Session, select
 
-
-def add_tasks(tasks: list[Task]):
-    query = """ INSERT INTO TASKS (title, description) VALUES (?, ?) """
-    data = [(task.title, task.description) for task in tasks]
-
-    with SqliteContext() as cursor:
-        cursor.executemany(query, data)
+from task.models import Task, TaskCreate, TaskPublic
 
 
-def get_tasks(task_id: int | None = None) -> list:
-    query = """ SELECT * FROM TASKS"""
-
+def get_tasks(
+    session: Session,
+    user: UserPublic,
+    task_id: uuid.UUID | None = None,
+) -> TaskPublic | list[TaskPublic] | None:
     if task_id:
-        query = f""" SELECT * FROM TASKS WHERE id={task_id}"""
+        statement = select(Task).where(Task.id == task_id, Task.user_id == user.id)
+        db_tasks = session.exec(statement).first()
+    else:
+        statement = select(Task).where(Task.user_id == user.id)
+        db_tasks = session.exec(statement).fetchall()
 
-    with SqliteContext() as cursor:
-        tasks = cursor.execute(query).fetchall()
+    if db_tasks:
+        return [TaskPublic.model_validate(db_task) for db_task in db_tasks]
 
-    return tasks
+    return []
+
+
+def add_tasks(session: Session, user: UserPublic, tasks: TaskCreate | list[TaskCreate]):
+    tasks_db = Task.model_validate(tasks, update={"user_id": user.id})
+
+    session.add(tasks_db)
+    session.commit()
+    session.refresh(tasks_db)

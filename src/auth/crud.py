@@ -1,3 +1,5 @@
+import uuid
+
 from pydantic.networks import EmailStr
 from sqlmodel import Session, select
 
@@ -7,8 +9,14 @@ from auth.security import get_password_hash
 LOGGED_IN_USERS = set()
 
 
-def get_user_from_email(session: Session, email: EmailStr) -> User | None:
-    statement = select(User).where(User.email == email)
+def get_user_from_username(session: Session, username: EmailStr) -> User | None:
+    statement = select(User).where(User.email == username)
+    user = session.exec(statement).first()
+    return user
+
+
+def get_user_from_id(session: Session, user_id: uuid.UUID) -> User | None:
+    statement = select(User).where(User.id == user_id)
     user = session.exec(statement).first()
     return user
 
